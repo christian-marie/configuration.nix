@@ -4,8 +4,8 @@ let intero-neovim = pkgs.vimUtils.buildVimPlugin {
     src = pkgs.fetchFromGitHub {
       owner = "parsonsmatt";
       repo = "intero-neovim";
-      rev = "26d340ab0d6e8d40cbafaf72dac0588ae901c117";
-      sha256 = "0y4bbbj6v9jq825ffpdx03hi6ldszqh2zxasc6h1b0vkpjmdc8y3";
+      rev = "51999e8abfb096960ba0bc002c49be1ef678e8a9";
+      sha256 = "1igc8swgbbkvyykz0ijhjkzcx3d83yl22hwmzn3jn8dsk6s4an8l";
     };
   };
 in {
@@ -13,14 +13,17 @@ in {
     "https://cache.nixos.org/"
     "https://build.daiseelabs.com/"
   ];
+
   nix.binaryCachePublicKeys = [
     "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     "build.daiseelabs.com-1:dcDJ5/wXMie1xvW/o5TfedvVIqKG77i3dpKfamBJg8M="
   ];
+
   nixpkgs.config.allowUnfree = true; 
   imports =
     [
       ./hardware-configuration.nix
+      ./vpn.nix
     ];
 
   i18n = {
@@ -52,9 +55,17 @@ in {
     stack
     ghc
     stdenv
+    autojump
     ];
     shellAliases = { vim = "nvim"; };
   };
+
+   programs.bash.interactiveShellInit = ''
+   # Commands that should be applied only for interactive shells.
+   if [[ -n $PS1 ]]; then
+     . ${pkgs.autojump}/share/autojump/autojump.bash
+   fi
+  '';
 
   sound.enable = true;
 
@@ -75,6 +86,8 @@ in {
 
   programs.zsh.enable = true;
   virtualization.libvirt.enable = true;
+  virtualisation.virtualbox.host.enable = true;
+  #nixpkgs.config.virtualbox.enableExtensionPack = true;
 
   fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
 
@@ -110,25 +123,25 @@ in {
     install = true;
    };
   services.xserver = {
-  	autorun = true;
-	displayManager.slim = {
-	  defaultUser = "christian";
+          autorun = true;
+        displayManager.slim = {
+          defaultUser = "christian";
 
-	};
+        };
 
-	# synaptics.enable = true;
+        # synaptics.enable = true;
 
-	libinput = {
-	  enable = true;
-	  tapping = true;
+        libinput = {
+          enable = true;
+          tapping = true;
           disableWhileTyping = true;
-	};
+        };
 
-	windowManager.i3.enable = true;
-	windowManager.default = "i3";
-	enable = true;
-	layout = "us";
-	xkbVariant = "colemak";
+        windowManager.i3.enable = true;
+        windowManager.default = "i3";
+        enable = true;
+        layout = "us";
+        xkbVariant = "colemak";
   };
 
   services.sshd.enable = true;
@@ -137,10 +150,10 @@ in {
   # services.ntp.enable = true;
 
   hardware.trackpoint = {
-  	enable = true;
-	sensitivity = 255;
-	speed = 200;
-	emulateWheel = true;
+          enable = true;
+        sensitivity = 255;
+        speed = 200;
+        emulateWheel = true;
   };
 
   
@@ -173,8 +186,8 @@ in {
   systemd.user.services.offlineimap.enable = true;
 
   services.redshift = {
-  	enable = true;
-	provider = "geoclue2";
+          enable = true;
+        provider = "geoclue2";
   };
 
   services.postgresql.enable = true;
@@ -186,32 +199,34 @@ in {
         };
         neovim = pkgs.neovim.override {
           configure = {
-	  customRC = ''
-	  set syntax=on
-	  set autoindent
-	  set autowrite
-	  set smartcase
-	  set showmode
-	  set nowrap
-	  set number
-	  set nocompatible
-	  set tw=80
-	  set smarttab
-	  set smartindent
-	  set incsearch
-	  set mouse=a
-	  set history=10000
-	  set completeopt=menuone,menu,longest
-	  set wildignore+=*\\tmp\\*,*.swp,*.swo,*.git
-	  set wildmode=longest,list,full
-	  set wildmenu
-	  set t_Co=512
-	  set cmdheight=1
-	  set expandtab
-	  '';
+          customRC = ''
+          set syntax=on
+          set autoindent
+          set autowrite
+          set smartcase
+          set showmode
+          set nowrap
+          set number
+          set nocompatible
+          set tw=80
+          set smarttab
+          set smartindent
+          set incsearch
+          set mouse=a
+          set history=10000
+          set completeopt=menuone,menu,longest
+          set wildignore+=*\\tmp\\*,*.swp,*.swo,*.git
+          set wildmode=longest,list,full
+          set wildmenu
+          set t_Co=512
+          set cmdheight=1
+          set expandtab
+          autocmd FileType haskell setlocal sw=4 sts=4 et
+          '';
           packages.neovim2 = with pkgs.vimPlugins; {
 
-          start = [ syntastic vim-nix intero-neovim neomake ctrlp];
+          start = [ tabular syntastic vim-nix intero-neovim neomake ctrlp
+          neoformat gitgutter];
           opt = [ ];
         };      
       };
